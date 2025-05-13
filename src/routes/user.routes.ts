@@ -6,6 +6,7 @@ const userController = new UserController();
 
 router.get('/', userController.getAll);
 router.get('/find', userController.findUser);
+router.get('/me', userController.me);
 router.get('/:id', userController.getById);
 router.post('/', userController.create);
 router.post('/add-menu', userController.menuToUser);

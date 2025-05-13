@@ -8,7 +8,6 @@ export class AuthController {
     public async login(req: Request, res: Response): Promise<any> {
         try {
             const {email, password } = req.body;
-            console.log(email, password)
             const findUser = await User.findOne({
                 where: {
                     email: email,
@@ -38,13 +37,15 @@ export class AuthController {
 
             res.cookie('accessToken', accessToken, {
                 httpOnly: true,
-                secure: true,
+                secure: false,
+                sameSite: 'lax',
                 expires: new Date(Number(exToken.exp) * 1000),
             });
 
-            res.cookie('exRefreshToken', exRefreshToken, {
+            res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                secure: true,
+                secure: false,
+                sameSite: 'lax',
                 expires: new Date(Number(exRefreshToken.exp) * 1000),
             });
 

@@ -11,7 +11,8 @@ import AuthRouter from "./routes/auth.router";
 const swagger = require('./config/swagger');
 import * as dotenv from 'dotenv';
 import authMiddleware from './common/middleware/auth.middleware';
-const cookieParser = require('cookie-parser')
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
 
 
 class App {
@@ -27,6 +28,7 @@ class App {
     private config(): void {
         dotenv.config();
         this.app.use(express.json());
+        this.app.use(cookieParser())
         this.app.use(express.urlencoded({ extended: false }));
         this.app.use(express.static(path.join(__dirname, 'public')));
         this.app.use(function (req, res, next) {
@@ -42,11 +44,24 @@ class App {
             );
             next();
         });
+
         this.app.use(interceptor);
-        this.app.use(cookieParser())
+        this.app.use(cors());
+        this.app.use(function (req, res, next) {
+            res.header('Access-Control-Allow-Credentials');
+            res.header('Access-Control-Allow-Origin', req.headers.origin);
+            res.header(
+                'Access-Control-Allow-Methods',
+                'GET,PUT,POST,DELETE,UPDATE,OPTIONS'
+            );
+            res.header(
+                'Access-Control-Allow-Headers',
+                'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept'
+            );
+            next();
+        });
         this.app.use(authMiddleware);
     }
-
 
     private routes(): void {
         this.app.use('/', htmlRouter); // Add this line

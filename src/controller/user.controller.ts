@@ -3,18 +3,20 @@ import {User} from "../models/user.model";
 import { Op} from "sequelize";
 import {genHash} from "../shared/hash-unity";
 import {Menu} from "../models/menu.model";
+import {cookie} from "../shared/cookie";
+import {verifyToken} from "../shared/token";
 
 export class UserController {
-    public async getAll(req: Request, res: Response<User[] | []>): Promise<any> {
+    public async getAll(req: Request, res: Response<User[] | []>) {
         try {
             const item: User[] = await User.findAll();
-            res.status(res.statusCode).json(item);
+            res.status(res.statusCode).json(item)
         } catch (e) {
             res.status(500).json((e as any).message);
         }
     }
 
-    public async findUser(req: Request, res: Response<User[] | []>): Promise<any> {
+    public async findUser(req: Request, res: Response<User[] | []>) {
         try {
             const item: User[] = await User.findAll({
                 where: {
@@ -33,7 +35,7 @@ export class UserController {
         }
     }
 
-    public async create(req: Request, res: Response): Promise<void> {
+    public async create(req: Request, res: Response<User | string>) {
         const {name, email, password} = req.body;
         const hashPass: string = await genHash(password);
         const create = {
@@ -45,24 +47,45 @@ export class UserController {
             const item = await User.create(create);
             res.status(201).json(item);
         } catch (error) {
-            res.status(500).json({error: (error as any).message});
+            res.status(500).json((error as any).message);
         }
     }
 
-    public async getById(req: Request, res: Response): Promise<void> {
+    public async getById(req: Request, res: Response<User | string>) {
         try {
             const item = await User.findByPk(req.params.id);
             if (item) {
                 res.json(item);
             } else {
-                res.status(404).json({error: 'not found'});
+                res.status(404).json( 'not found');
             }
         } catch (error) {
-            res.status(500).json({error: (error as any).message});
+            res.status(500).json( (error as any).message);
         }
     }
 
-    public async update(req: Request, res: Response): Promise<void> {
+    public async me(req: Request, res: Response<User | string>){
+        try {
+            const  vUser = verifyToken(cookie(req, 'accessToken'));
+            const item = await User.findOne({
+                where: {
+                    id: vUser.userId
+                },
+                attributes: {
+                    exclude: ['password'], // ✅ Correct way to exclude fields
+                },
+            });
+            if (item) {
+                res.json(item);
+            } else {
+                res.status(404).json('not found');
+            }
+        } catch (error) {
+            res.status(500).json((error as any).message);
+        }
+    }
+
+    public async update(req: Request, res: Response<User | null | string>) {
         try {
             const [item] = await User.update(req.body, {
                 where: {id: req.params.id},
@@ -71,25 +94,25 @@ export class UserController {
                 const updateItem = await User.findByPk(req.params.id);
                 res.json(updateItem);
             } else {
-                res.status(404).json({error: 'not found'});
+                res.status(404).json('not found');
             }
         } catch (error) {
-            res.status(500).json({error: (error as any).message});
+            res.status(500).json((error as any).message);
         }
     }
 
-    public async delete(req: Request, res: Response): Promise<void> {
+    public async delete(req: Request, res: Response<string>) {
         try {
             const deleted = await User.destroy({
                 where: {id: req.params.id},
             });
             if (deleted) {
-                res.json({message: 'deleted'});
+                res.json('deleted');
             } else {
-                res.status(404).json({error: 'not found'});
+                res.status(404).json('not found');
             }
         } catch (error) {
-            res.status(500).json({error: (error as any).message});
+            res.status(500).json((error as any).message);
         }
     }
 

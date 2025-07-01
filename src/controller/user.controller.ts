@@ -66,7 +66,7 @@ export class UserController {
 
     public async me(req: Request, res: Response<User | string>){
         try {
-            const  vUser = verifyToken(cookie(req, 'accessToken'));
+            const  vUser = verifyToken(cookie(req, 'accessToken')!);
             const item = await User.findOne({
                 where: {
                     id: vUser.userId

@@ -28,8 +28,8 @@ export class AuthController {
                 email: findUser?.email,
             }
 
-            const  accessToken = signToken(jwtPayload, 'token');
-            const  refreshToken = signToken(jwtPayload, 'refreshToken');
+            const  accessToken: string | undefined = signToken(jwtPayload, 'token');
+            const  refreshToken: string | undefined = signToken(jwtPayload, 'refreshToken');
 
             const exToken = verifyToken(accessToken);
             const exRefreshToken = verifyToken(refreshToken)
@@ -51,7 +51,11 @@ export class AuthController {
 
             res.status(res.statusCode).json({
                 accessToken: accessToken,
-                refreshToken: refreshToken
+                refreshToken: refreshToken,
+                expires: {
+                    token: exToken.exp,
+                    refresh: exRefreshToken.exp,
+                }
             });
         } catch (e) {
             res.status(500).json((e as any).message);

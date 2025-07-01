@@ -27,59 +27,41 @@ const authMiddleware: RequestHandler = (
             return next(); // Skip authentication
         }
 
-        const accessToken:string = cookie(req, 'accessToken');
-        const refreshToken: string =  cookie(req, 'refreshToken');
-        console.log('refreshToken', refreshToken)
-        console.log('accessToken', accessToken)
-        if(accessToken && refreshToken) {
-            const vRefresh = verifyToken(accessToken);
-            res.cookie('user', {
-                userId: vRefresh?.userId,
-                email: vRefresh?.email,
-            }, {
-                httpOnly: true,
-                secure: false,
-                sameSite: 'lax',
-                expires: new Date(Number(vRefresh.exp) * 1000),
-            });
+        const accessToken:string | undefined = cookie(req, 'accessToken') === "undefined" ?  undefined :  cookie(req, 'accessToken');
+        const refreshToken: string | undefined =  cookie(req, 'refreshToken') === "undefined" ? undefined : cookie(req, 'refreshToken');
+        if(accessToken && refreshToken ) {
             return next();
         }else if(!accessToken && refreshToken) {
+            console.log('im here 2')
            const vRefresh = verifyToken(refreshToken);
             const jwtPayload: JwtPayload = {
                 userId: vRefresh?.userId,
                 email: vRefresh?.email,
             };
 
-            res.cookie('user', jwtPayload, {
-                httpOnly: true,
-                secure: false,
-                sameSite: 'lax',
-                expires: new Date(Number(vRefresh.exp) * 1000),
-            });
-
             const  newAccessToken = signToken(jwtPayload, 'token');
             const  newRefreshToken = signToken(jwtPayload, 'refreshToken');
-
             const exToken = verifyToken(newAccessToken);
             const exRefreshToken = verifyToken(newRefreshToken)
 
-            res.cookie('accessToken', newAccessToken, {
+            res.cookie('wwwww', "wxyz", {
                 httpOnly: true,
                 secure: false,
-                sameSite: 'lax',
-                expires: new Date(Number(exToken.exp) * 1000),
             });
 
-            res.cookie('refreshToken', newRefreshToken, {
-                httpOnly: true,
-                secure: false,
-                sameSite: 'lax',
-                expires: new Date(Number(exRefreshToken.exp) * 1000),
-            });
+            // res.cookie('refreshToken', newRefreshToken, {
+            //     httpOnly: true,
+            //     secure: false,
+            //     sameSite: 'lax',
+            //     expires: new Date(Number(exRefreshToken.exp) * 1000),
+            // });
+
             next()
         }else  {
+            console.log('im here3')
             return next(new UnauthorizedException('Access token required'));
         }
+    console.log('im here 4')
 };
 
 export default authMiddleware;
